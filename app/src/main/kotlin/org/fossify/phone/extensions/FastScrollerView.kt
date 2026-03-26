@@ -9,11 +9,16 @@ fun FastScrollerView.setupWithContacts(
     recyclerView: RecyclerView,
     contacts: List<Contact>,
 ) = setupWithRecyclerView(recyclerView, { position ->
-    val initialLetter = try {
-        contacts[position].getFirstLetter()
+    val indicatorText = try {
+        val contact = contacts[position]
+        if (contact.starred == 1) {
+            "★" // Special character for favorites
+        } else {
+            contact.getFirstLetter() // Original A-Z logic
+        }
     } catch (e: IndexOutOfBoundsException) {
         ""
     }
 
-    FastScrollItemIndicator.Text(initialLetter)
+    FastScrollItemIndicator.Text(indicatorText)
 })

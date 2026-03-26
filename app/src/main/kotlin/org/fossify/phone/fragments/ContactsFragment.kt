@@ -86,21 +86,32 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
     }
 
     override fun refreshItems(invalidate: Boolean, callback: (() -> Unit)?) {
+        // We fetch everything (favoritesOnly = false)
         val privateCursor = context?.getMyContactsCursor(favoritesOnly = false, withPhoneNumbersOnly = true)
-        ContactsHelper(context).getContacts(showOnlyContactsWithNumbers = true) { contacts ->
-            allContacts = contacts
 
+        ContactsHelper(context).getContacts(showOnlyContactsWithNumbers = true) { contacts ->
+            val fullList = ArrayList<Contact>()
+            fullList.addAll(contacts)
+
+            // Add private contacts if they aren't ignored
             if (SMT_PRIVATE !in context.baseConfig.ignoredContactSources) {
                 val privateContacts = MyContactsContentProvider.getContacts(context, privateCursor)
                 if (privateContacts.isNotEmpty()) {
-                    allContacts.addAll(privateContacts)
-                    allContacts.sort()
+                    fullList.addAll(privateContacts)
                 }
             }
+
+            // --- THE MERGE & SORT LOGIC ---
+            // 1. Put Starred (1) at the top, Unstarred (0) below
+            // 2. Then sort alphabetically by name
+            fullList.sortWith(compareByDescending<Contact> { it.starred }.thenBy { it.getNameToDisplay().lowercase() })
+
+            allContacts = fullList
             (activity as MainActivity).cacheContacts()
 
             activity?.runOnUiThread {
-                gotContacts(contacts)
+                // Crucial: Pass the sorted fullList here
+                gotContacts(fullList)
                 callback?.invoke()
             }
         }

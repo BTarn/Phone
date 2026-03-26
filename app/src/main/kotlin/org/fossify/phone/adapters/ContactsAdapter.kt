@@ -149,6 +149,24 @@ class ContactsAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val contact = contacts[position]
+
+        // --- START SPACE LOGIC ---
+        val layoutParams = holder.itemView.layoutParams as RecyclerView.LayoutParams
+
+        // Check if this is the first contact that isn't starred (but the one above it was)
+        val isFirstNormalContact = contact.starred == 0 && (position > 0 && contacts[position - 1].starred == 1)
+
+        if (isFirstNormalContact) {
+            // We use 32dp of space. 'context.resources' gets the scaling right for your screen.
+            val marginInPx = (32 * holder.itemView.context.resources.displayMetrics.density).toInt()
+            layoutParams.topMargin = marginInPx
+        } else {
+            // Reset margin for everyone else so recycling doesn't break the layout
+            layoutParams.topMargin = 0
+        }
+        holder.itemView.layoutParams = layoutParams
+        // --- END SPACE LOGIC ---
+
         holder.bindView(contact, true, allowLongClick) { itemView, _ ->
             val viewType = getItemViewType(position)
             setupView(Binding.getByItemViewType(viewType).bind(itemView), contact, holder)
