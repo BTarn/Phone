@@ -417,14 +417,12 @@ class MainActivity : SimpleActivity() {
         binding.viewPager.adapter = null
         binding.mainTabsHolder.removeAllTabs()
         tabsList.forEachIndexed { index, value ->
-            if (config.showTabs and value != 0) {
                 binding.mainTabsHolder.newTab().setCustomView(R.layout.bottom_tablayout_item).apply {
                     customView?.findViewById<ImageView>(R.id.tab_item_icon)?.setImageDrawable(getTabIcon(index))
                     customView?.findViewById<TextView>(R.id.tab_item_label)?.text = getTabLabel(index)
                     AutofitHelper.create(customView?.findViewById(R.id.tab_item_label))
                     binding.mainTabsHolder.addTab(this)
                 }
-            }
         }
 
         binding.mainTabsHolder.onTabSelectionChanged(

@@ -39,7 +39,6 @@ import org.fossify.commons.models.RadioItem
 import org.fossify.phone.R
 import org.fossify.phone.databinding.ActivitySettingsBinding
 import org.fossify.phone.dialogs.ExportCallHistoryDialog
-import org.fossify.phone.dialogs.ManageVisibleTabsDialog
 import org.fossify.phone.extensions.canLaunchAccountsConfiguration
 import org.fossify.phone.extensions.config
 import org.fossify.phone.extensions.launchAccountsConfiguration
@@ -101,7 +100,6 @@ class SettingsActivity : SimpleActivity() {
         setupManageSpeedDial()
         setupChangeDateTimeFormat()
         setupFontSize()
-        setupManageShownTabs()
         setupDefaultTab()
         setupOnContactClick()
         setupDialPadOpen()
@@ -229,11 +227,6 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupManageShownTabs() {
-        binding.settingsManageTabsHolder.setOnClickListener {
-            ManageVisibleTabsDialog(this)
-        }
-    }
 
     private fun setupDefaultTab() {
         binding.settingsDefaultTab.text = getDefaultTabText()
