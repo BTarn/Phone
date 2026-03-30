@@ -339,7 +339,30 @@ class DialpadActivity : SimpleActivity() {
             recyclerView = binding.dialpadList,
             highlightText = text,
             itemClick = {
-                startCallWithConfirmationCheck(it as Contact)
+                val contact = it as Contact
+                val dialpadDigits = binding.dialpadInput.value.filter { it.isDigit() }
+
+                // SEARCH BOTH: Check normalized AND raw numbers, stripping all non-digits
+                val matchedNumber = contact.phoneNumbers.find { phoneNumber ->
+                    val cleanNormalized = phoneNumber.normalizedNumber.filter { it.isDigit() }
+                    val cleanRaw = phoneNumber.value.filter { it.isDigit() }
+
+                    cleanNormalized.contains(dialpadDigits) || cleanRaw.contains(dialpadDigits)
+                }
+
+                // DECIDE: Use the match if found; otherwise, ONLY use the first number if dialpad is empty
+                val finalNumber = when {
+                    matchedNumber != null -> matchedNumber.normalizedNumber
+                    dialpadDigits.isEmpty() -> contact.phoneNumbers.firstOrNull()?.normalizedNumber
+                    else -> contact.phoneNumbers.firstOrNull()?.normalizedNumber // Or handle 'No Match' differently
+                }
+
+                // DEBUG: Let's see if the secondary check fixed it
+                println("TarnPhone Debug: Dialpad=$dialpadDigits | MatchFound=${matchedNumber != null} | Dialing=$finalNumber")
+
+                if (finalNumber != null) {
+                    startCallWithConfirmationCheck(finalNumber, contact.getNameToDisplay())
+                }
                 clearInputWithDelay()
             },
             profileIconClick = {
