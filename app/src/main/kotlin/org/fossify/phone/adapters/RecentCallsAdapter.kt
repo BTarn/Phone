@@ -473,39 +473,48 @@ class RecentCallsAdapter(
 
                 val currentFontSize = fontSize
                 itemRecentsHolder.isSelected = selectedKeys.contains(call.id)
+
+                // 1. Determine the base name (Contact Name or Phone Number)
                 val matchingContact = findContactByCall(call)
-                val name = matchingContact?.getNameToDisplay() ?: call.name
+                val rawName = matchingContact?.getNameToDisplay() ?: call.name
                 val formatPhoneNumbers = activity.config.formatPhoneNumbers
-                var nameToShow = if (name == call.phoneNumber && formatPhoneNumbers) {
-                    SpannableString(name.formatPhoneNumber())
+
+                val baseName = if (rawName == call.phoneNumber && formatPhoneNumbers) {
+                    rawName.formatPhoneNumber()
                 } else {
-                    SpannableString(name)
-                }
-                val shouldShowDuration = call.type != Calls.MISSED_TYPE && call.type != Calls.REJECTED_TYPE && call.duration > 0
-
-                if (refreshItemsListener == null) {
-                    // show specific number at "Show call details" dialog too
-                    val typePart = call.specificType
-                        .takeIf { it.isNotBlank() }?.let { " - $it" }.orEmpty()
-
-                    val numPart = call.specificNumber
-                        .takeIf { it.isNotBlank() }
-                        ?.let { if (formatPhoneNumbers) it.formatPhoneNumber() else it }
-                        ?.let { ", $it" }
-                        .orEmpty()
-
-                    nameToShow = SpannableString("$name$typePart$numPart")
-                } else if (call.specificType.isNotBlank()) {
-                    nameToShow = SpannableString("$name - ${call.specificType}")
+                    rawName
                 }
 
+                // 2. Build the suffix (Type/Label and optional Number)
+                val typePart = call.specificType.trim()
+                val numPart = call.specificNumber.trim()
+                val suffixBuilder = StringBuilder()
+
+                // Add the " - Type" if available
+                if (typePart.isNotEmpty()) {
+                    suffixBuilder.append(" - $typePart")
+                }
+
+                // If in "Call Details" mode (refreshItemsListener is null), append the number
+                if (refreshItemsListener == null && numPart.isNotEmpty()) {
+                    val formattedNum = if (formatPhoneNumbers) numPart.formatPhoneNumber() else numPart
+                    suffixBuilder.append(", $formattedNum")
+                }
+
+                // 3. Finalize the display string
+                var nameToShow = SpannableString("$baseName$suffixBuilder")
+
+                // 4. Handle Grouped Calls count
                 if (call.groupedCalls != null) {
                     nameToShow = SpannableString("$nameToShow (${call.groupedCalls.size})")
                 }
 
+                // 5. Apply Search Highlighting
                 if (textToHighlight.isNotEmpty() && nameToShow.contains(textToHighlight, true)) {
                     nameToShow = SpannableString(nameToShow.toString().highlightTextPart(textToHighlight, properPrimaryColor))
                 }
+
+                val shouldShowDuration = call.type != Calls.MISSED_TYPE && call.type != Calls.REJECTED_TYPE && call.duration > 0
 
                 itemRecentsName.apply {
                     text = nameToShow
@@ -564,8 +573,8 @@ class RecentCallsAdapter(
                     setTextSize(TypedValue.COMPLEX_UNIT_PX, currentFontSize * 0.8f)
                     beVisibleIf(
                         phoneNumber != null
-                                && phoneNumber.countryCodeSource != Phonenumber.PhoneNumber.CountryCodeSource.FROM_DEFAULT_COUNTRY
-                                && (location != locale.displayCountry || matchingContact == null)
+                            && phoneNumber.countryCodeSource != Phonenumber.PhoneNumber.CountryCodeSource.FROM_DEFAULT_COUNTRY
+                            && (location != locale.displayCountry || matchingContact == null)
                     )
                 }
 

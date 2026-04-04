@@ -494,7 +494,7 @@ class MainActivity : SimpleActivity() {
 
             fragments.add(getContactsFragment())
             fragments.add(getRecentsFragment())
-        
+
         return fragments
     }
 

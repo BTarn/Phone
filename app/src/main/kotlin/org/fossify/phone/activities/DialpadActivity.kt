@@ -350,20 +350,18 @@ class DialpadActivity : SimpleActivity() {
                     cleanNormalized.contains(dialpadDigits) || cleanRaw.contains(dialpadDigits)
                 }
 
-                // DECIDE: Use the match if found; otherwise, ONLY use the first number if dialpad is empty
-                val finalNumber = when {
-                    matchedNumber != null -> matchedNumber.normalizedNumber
-                    dialpadDigits.isEmpty() -> contact.phoneNumbers.firstOrNull()?.normalizedNumber
-                    else -> contact.phoneNumbers.firstOrNull()?.normalizedNumber // Or handle 'No Match' differently
-                }
+                // 1. Calculate the value ONCE
+                val finalNumber = (matchedNumber ?: contact.phoneNumbers.firstOrNull())?.value
 
-                // DEBUG: Let's see if the secondary check fixed it
-                println("TarnPhone Debug: Dialpad=$dialpadDigits | MatchFound=${matchedNumber != null} | Dialing=$finalNumber")
+// 2. Log the value (it's okay if it's null here, the log will just say "null")
+                println("TarnPhone Debug: Dialpad=$dialpadDigits | Dialing=$finalNumber")
 
-                if (finalNumber != null) {
-                    startCallWithConfirmationCheck(finalNumber, contact.getNameToDisplay())
+// 3. Use the variable you already created
+                finalNumber?.let { numberToDial ->
+                    // This only runs if finalNumber was NOT null
+                    startCallWithConfirmationCheck(numberToDial, contact.getNameToDisplay())
+                    clearInputWithDelay()
                 }
-                clearInputWithDelay()
             },
             profileIconClick = {
                 startContactDetailsIntent(it as Contact)

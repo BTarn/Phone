@@ -249,10 +249,20 @@ class RecentsHelper(private val context: Context) {
                 var specificNumber = ""
                 var specificType = ""
 
-                val contactIdWithMultipleNumbers = numbersToContactIDMap[number]
-                if (contactIdWithMultipleNumbers != null) {
-                    val specificPhoneNumber =
-                        contacts.firstOrNull { it.contactId == contactIdWithMultipleNumbers }?.phoneNumbers?.firstOrNull { it.value == number }
+                // Find the contact by comparing normalized numbers
+                val matchingContact = contacts.firstOrNull { contact ->
+                    contact.phoneNumbers.any { contactNum ->
+                        // Use Android's utility to compare numbers (handles country codes/formatting)
+                        PhoneNumberUtils.compare(context, contactNum.value, number.orEmpty())
+                    }
+                }
+
+                if (matchingContact != null) {
+                    // Find the specific phone number object that matched
+                    val specificPhoneNumber = matchingContact.phoneNumbers.firstOrNull { contactNum ->
+                        PhoneNumberUtils.compare(context, contactNum.value, number.orEmpty())
+                    }
+
                     if (specificPhoneNumber != null) {
                         specificNumber = specificPhoneNumber.value
                         specificType = context.getPhoneNumberTypeText(specificPhoneNumber.type, specificPhoneNumber.label)
