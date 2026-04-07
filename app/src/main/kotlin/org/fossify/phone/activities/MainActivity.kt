@@ -327,17 +327,8 @@ class MainActivity : SimpleActivity() {
         val showTabs = config.showTabs
         val icons = mutableListOf<Int>()
 
-        if (showTabs and TAB_CONTACTS != 0) {
             icons.add(R.drawable.ic_person_vector)
-        }
-
-        if (showTabs and TAB_FAVORITES != 0) {
-            icons.add(R.drawable.ic_star_vector)
-        }
-
-        if (showTabs and TAB_CALL_HISTORY != 0) {
             icons.add(R.drawable.ic_clock_filled_vector)
-        }
 
         return icons
     }
@@ -346,17 +337,8 @@ class MainActivity : SimpleActivity() {
         val showTabs = config.showTabs
         val icons = ArrayList<Int>()
 
-        if (showTabs and TAB_CONTACTS != 0) {
             icons.add(R.drawable.ic_person_outline_vector)
-        }
-
-        if (showTabs and TAB_FAVORITES != 0) {
-            icons.add(R.drawable.ic_star_outline_vector)
-        }
-
-        if (showTabs and TAB_CALL_HISTORY != 0) {
             icons.add(R.drawable.ic_clock_vector)
-        }
 
         return icons
     }
@@ -505,30 +487,18 @@ class MainActivity : SimpleActivity() {
     private fun getRecentsFragment(): RecentsFragment? = findViewById(R.id.recents_fragment)
 
     private fun getDefaultTab(): Int {
-        val showTabsMask = config.showTabs
         return when (config.defaultTab) {
-            TAB_LAST_USED -> if (config.lastUsedViewPagerPage < binding.mainTabsHolder.tabCount) config.lastUsedViewPagerPage else 0
             TAB_CONTACTS -> 0
-            TAB_FAVORITES -> if (showTabsMask and TAB_CONTACTS > 0) 1 else 0
-            else -> {
-                if (showTabsMask and TAB_CALL_HISTORY > 0) {
-                    if (showTabsMask and TAB_CONTACTS > 0) {
-                        if (showTabsMask and TAB_FAVORITES > 0) {
-                            2
-                        } else {
-                            1
-                        }
-                    } else {
-                        if (showTabsMask and TAB_FAVORITES > 0) {
-                            1
-                        } else {
-                            0
-                        }
-                    }
+            TAB_CALL_HISTORY -> 1
+            TAB_LAST_USED -> {
+                // Ensure the saved index is still valid for our 2-tab setup
+                if (config.lastUsedViewPagerPage in 0..1) {
+                    config.lastUsedViewPagerPage
                 } else {
                     0
                 }
             }
+            else -> 0 // Default to Contacts
         }
     }
 
