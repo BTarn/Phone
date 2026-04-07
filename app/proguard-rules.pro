@@ -21,3 +21,6 @@
     public static <1> INSTANCE;
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+-dontwarn com.andrognito.patternlockview.PatternLockView
+-dontwarn com.andrognito.patternlockview.listener.PatternLockViewListener
