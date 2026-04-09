@@ -9,7 +9,9 @@ import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
 import android.os.PowerManager
+import android.provider.ContactsContract
 import android.telecom.TelecomManager
+import android.widget.Toast
 import org.fossify.commons.extensions.launchActivityIntent
 import org.fossify.commons.extensions.telecomManager
 import org.fossify.commons.helpers.KEY_PHONE
@@ -88,10 +90,27 @@ fun Context.launchAccountsConfiguration() {
 }
 
 fun Activity.startAddContactIntent(phoneNumber: String) {
-    Intent().apply {
+    val fossifyPackage = "org.fossify.contacts"
+
+    val intent = Intent().apply {
         action = Intent.ACTION_INSERT_OR_EDIT
         type = "vnd.android.cursor.item/contact"
-        putExtra(KEY_PHONE, phoneNumber)
-        launchActivityIntent(this)
+        putExtra(ContactsContract.Intents.Insert.PHONE, phoneNumber)
+    }
+
+    try {
+        // Attempt to force Fossify Contacts
+        val fossifyIntent = Intent(intent).apply {
+            setPackage(fossifyPackage)
+        }
+        startActivity(fossifyIntent)
+    } catch (e: Exception) {
+        // Fallback: If Fossify is missing, let the system decide (Vivo app)
+        try {
+            intent.setPackage(null) // Clear explicit package to use default
+            startActivity(intent)
+        } catch (fallbackException: Exception) {
+            Toast.makeText(this, "No contact app found", Toast.LENGTH_SHORT).show()
+        }
     }
 }
