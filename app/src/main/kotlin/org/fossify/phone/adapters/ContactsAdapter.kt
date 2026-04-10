@@ -149,21 +149,28 @@ class ContactsAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val contact = contacts[position]
-
-        // --- START SPACE LOGIC ---
         val layoutParams = holder.itemView.layoutParams as RecyclerView.LayoutParams
 
-        // Check if this is the first contact that isn't starred (but the one above it was)
-        val isFirstNormalContact = contact.starred == 0 && (position > 0 && contacts[position - 1].starred == 1)
+        // 1. Get the "Section Identity" for the current and previous contact
+        val currentLetter = contact.getNameToDisplay().firstOrNull()?.uppercaseChar() ?: '#'
+        val previousContact = if (position > 0) contacts[position - 1] else null
+        val previousLetter = previousContact?.getNameToDisplay()?.firstOrNull()?.uppercaseChar() ?: '#'
 
-        if (isFirstNormalContact) {
-            // We use 32dp of space. 'context.resources' gets the scaling right for your screen.
+        // 2. Detect the "Boundaries"
+        val isTransitionFromFavorite = contact.starred == 0 && previousContact?.starred == 1
+        val isNewAlphabet = contact.starred == 0 && currentLetter != previousLetter
+
+        // 3. Apply the space if any boundary is hit
+        if (isTransitionFromFavorite) {
             val marginInPx = (32 * holder.itemView.context.resources.displayMetrics.density).toInt()
             layoutParams.topMargin = marginInPx
+        } else if (isNewAlphabet) {
+            val marginInPx = (16 * holder.itemView.context.resources.displayMetrics.density).toInt()
+            layoutParams.topMargin = marginInPx
         } else {
-            // Reset margin for everyone else so recycling doesn't break the layout
             layoutParams.topMargin = 0
         }
+
         holder.itemView.layoutParams = layoutParams
         // --- END SPACE LOGIC ---
 
