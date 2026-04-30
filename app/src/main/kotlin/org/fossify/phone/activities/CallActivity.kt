@@ -784,7 +784,7 @@ class CallActivity : SimpleActivity() {
             } else {
                 disableAllActionButtons()
                 binding.callStatusLabel.text = getString(R.string.call_ended)
-                finish()
+                safeFinishAndRemoveTask()
             }
         }
     }
